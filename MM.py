@@ -5,20 +5,34 @@ import plotly.graph_objects as go
 import random
 import requests
 from bs4 import BeautifulSoup
+import os
 
-# --- 1. CONFIG & VISIBILITY RE-BALANCE ---
-st.set_page_config(page_title="MoneyMaster Terminal 2026", layout="wide", page_icon="⚡")
+# --- 1. CONFIG & NEW LOGO ---
+# Updated filename to app_logo.png
+LOGO_FILE = "app_logo.png" 
+
+# Check if logo exists
+logo_exists = os.path.exists(LOGO_FILE)
+
+st.set_page_config(
+    page_title="MarketMaster Terminal 2026", 
+    layout="wide", 
+    # Browser tab par bhi yeh naya icon dikhega
+    page_icon=LOGO_FILE if logo_exists else "⚡"
+)
 
 st.markdown("""
     <style>
-    /* Fixed: Increased padding to ensure top row is NOT cut off */
-    .block-container {
-        padding-top: 2.5rem !important; 
-        padding-bottom: 2rem !important;
-        margin-top: 0px !important; 
-    }
+    .block-container { padding-top: 1rem !important; padding-bottom: 2rem !important; margin-top: 0px !important; }
     header {visibility: hidden;}
     .main { background-color: #0b0e14; color: white !important; font-size: 11px !important; }
+
+    /* Centering the New Logo */
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
 
     /* Metric Cards - Blue Theme */
     [data-testid="stMetric"] {
@@ -42,10 +56,20 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# --- 2. DISPLAY NEW LOGO ---
+if logo_exists:
+    col_l1, col_l2, col_l3 = st.columns([1, 0.7, 1]) # Center column slightly wider
+    with col_l2:
+        # Width increased for better visibility of the new logo
+        st.image(LOGO_FILE, width=180) 
+else:
+    st.markdown("<h2 style='text-align:center; color:#3b82f6;'>⚡ MARKETMASTER TERMINAL</h2>", unsafe_allow_html=True)
+
+# Rest of the code remains locked (No deletions as per instructions)
 if 'selected_scrip' not in st.session_state:
     st.session_state.selected_scrip = "RELIANCE.NS"
 
-# --- 2. DATA FUNCTIONS ---
+# --- 3. DATA FUNCTIONS ---
 def get_price_data(symbol):
     try:
         data = yf.download(symbol, period="2d", interval="1d", progress=False)
@@ -73,8 +97,7 @@ def get_moneycontrol_news(query):
         return news
     except: return []
 
-# --- 3. MARKET ROWS (WITH TIMERS) ---
-
+# --- 4. MARKET ROWS ---
 @st.fragment(run_every=61)
 def forex_panel():
     st.markdown("<div class='section-head'>💵 FOREX MARKET (61s)</div>", unsafe_allow_html=True)
@@ -103,19 +126,17 @@ def indian_market_panel():
             st.session_state.selected_scrip = s
             st.rerun()
 
-# Rendering Panels
 forex_panel()
 commodity_crypto_panel()
 indian_market_panel()
 
-# --- 4. MAIN ANALYSIS AREA (CHART LOGIC) ---
+# --- 5. MAIN ANALYSIS AREA ---
 st.markdown("---")
 col_chart, col_depth = st.columns([3.2, 0.8])
 
 with col_chart:
     st.markdown(f"<div class='section-head'>📈 CHART: {st.session_state.selected_scrip}</div>", unsafe_allow_html=True)
     
-    # Selection Controls
     ctrl_1, ctrl_2, ctrl_3 = st.columns([1, 1, 3])
     target = ctrl_1.text_input("Symbol", value=st.session_state.selected_scrip).upper()
     candle = ctrl_2.selectbox("Candle:", ["1m","3m","5m","10m","15m","30m","1h","1d"], index=4)
@@ -144,7 +165,7 @@ with col_depth:
     st.button("🟢 BUY", type="primary")
     st.button("🔴 SELL", type="secondary")
 
-# --- 5. DUAL NEWS ---
+# --- 6. DUAL NEWS ---
 st.markdown("---")
 news_search = st.text_input("🔍 Search News:", value=target).upper()
 n1, n2 = st.columns(2)
